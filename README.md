@@ -1,41 +1,27 @@
 # Prospect Intelligence Briefing (MVP Foundation)
 
-A lightweight MVP foundation for generating prospect intelligence briefings for sales reps.
+Initial runnable foundation for a take-home MVP that will evolve into an AI-assisted prospect intelligence workflow for sales reps.
 
 ## Stack
 
 - Next.js (App Router) + TypeScript
-- Tailwind CSS + shadcn/ui-style component base
+- Tailwind CSS + shadcn/ui-style components
 - Prisma + SQLite
 - Zod validation
-- Recharts
+- Recharts (admin placeholder chart)
 - Docker
 
 ## Project Structure
 
-- `app/` – routes, layouts, API handlers
-- `components/` – reusable UI and page components
-- `lib/` – utility functions, constants, validators, Prisma client
-- `services/` – database-backed app services
-- `prisma/` – schema, migration files, and seed script
-
-## Features in this Lite MVP
-
-- Homepage with briefing request form and recent report history
-- Report lifecycle statuses: `QUEUED`, `RESEARCHING`, `DRAFTED`, `COMPLETED`, `FAILED`
-- Report detail sections for Company Snapshot, Risk Signals, Growth Signals, and Suggested Talking Points
-- `POST /api/research` to queue a report request
-- `PATCH /api/research` to move a report through lifecycle statuses
-- `GET /api/research` to fetch recent reports
-- Admin dashboard with:
-  - status KPI cards (click-through filtering)
-  - date/city/state/status filters
-  - daily volume chart + day-level drill-down links
-  - filtered report list
+- `app/` – routes and pages
+- `components/` – reusable UI and feature components
+- `lib/` – utilities, constants, validators, Prisma client
+- `services/` – app-level data/service helpers
+- `prisma/` – schema, migration, and seed script
 
 ## Local Setup
 
-1. Copy env values:
+1. Copy environment variables:
 
    ```bash
    cp .env.example .env
@@ -47,13 +33,13 @@ A lightweight MVP foundation for generating prospect intelligence briefings for 
    npm install
    ```
 
-3. Apply migrations:
+3. Run migrations:
 
    ```bash
    npx prisma migrate dev
    ```
 
-4. Seed local data:
+4. (Optional) Seed local data:
 
    ```bash
    npm run db:seed
@@ -65,23 +51,29 @@ A lightweight MVP foundation for generating prospect intelligence briefings for 
    npm run dev
    ```
 
-6. Open [http://localhost:3000](http://localhost:3000)
+6. Open [http://localhost:3000](http://localhost:3000).
 
 ## Useful Commands
 
-- `npm run lint`
-- `npm run build`
-- `npm run prisma:generate`
-- `npm run prisma:migrate`
+- `npm run lint` – lint checks
+- `npm run build` – production build
+- `npm run prisma:generate` – regenerate Prisma client
+- `npm run prisma:migrate` – run dev migrations
 
 ## Docker
+
+Build and run the app:
 
 ```bash
 docker build -t prospect-intelligence-briefing .
 docker run --rm -p 3000:3000 --env-file .env prospect-intelligence-briefing
 ```
 
-## Notes
+## Current MVP Scope
 
-- SQLite is the default local database.
-- External web research and AI generation are intentionally not implemented yet.
+- Homepage with search form and recent report list
+- Admin page shell with metric cards and chart area
+- Report detail placeholder page
+- API endpoint (`POST /api/research`) to validate and queue a report request
+
+No external search or AI generation is implemented yet.

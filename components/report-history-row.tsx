@@ -1,15 +1,9 @@
 import Link from "next/link";
-import type { ReportStatus } from "@prisma/client";
+import type { Report } from "@prisma/client";
 import { StatusBadge } from "@/components/status-badge";
 
 type ReportHistoryRowProps = {
-  report: {
-    id: string;
-    agencyName: string;
-    city: string;
-    state: string;
-    status: ReportStatus;
-  };
+  report: Report;
 };
 
 export function ReportHistoryRow({ report }: ReportHistoryRowProps) {

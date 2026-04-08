@@ -8,33 +8,25 @@ datasource db {
 }
 
 enum ReportStatus {
-  QUEUED
-  RESEARCHING
-  DRAFTED
+  PENDING
   COMPLETED
   FAILED
-  PENDING
 }
 
 model Report {
-  id              String         @id @default(cuid())
-  agencyName      String
-  city            String
-  state           String
-  status          ReportStatus   @default(QUEUED)
-  summary         String?
-  companySnapshot Json?
-  riskSignals     Json?
-  growthSignals   Json?
-  talkingPoints   Json?
-  generatedAt     DateTime?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  sources         ReportSource[]
-  usageEvents     UsageEvent[]
+  id           String         @id @default(cuid())
+  agencyName   String
+  city         String
+  state        String
+  status       ReportStatus   @default(PENDING)
+  summary      String?
+  generatedAt  DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sources      ReportSource[]
+  usageEvents  UsageEvent[]
 
   @@index([createdAt])
-  @@index([status])
 }
 
 model ReportSource {

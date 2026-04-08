@@ -14,7 +14,7 @@ export default async function HomePage() {
       agencyName: "Northstar Commercial",
       city: "Denver",
       state: "CO",
-      status: ReportStatus.QUEUED,
+      status: ReportStatus.PENDING,
       summary: null,
       generatedAt: null,
       createdAt: new Date(),
