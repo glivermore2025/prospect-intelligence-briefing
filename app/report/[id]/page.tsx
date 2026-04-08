@@ -1,12 +1,38 @@
-import { ReportStatus } from "@prisma/client";
+import { ReportStatus, type Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
-import { getReportById } from "@/services/report-service";
+import { formatLocation, getReportById } from "@/services/report-service";
+
+const fallbackReport = {
+  agencyName: "Sample Report",
+  city: "Seattle",
+  state: "WA",
+  status: ReportStatus.QUEUED,
+  createdAt: new Date(),
+  summary: "Prospect briefing is queued for enrichment.",
+  companySnapshot: ["Core profile currently being collected."],
+  riskSignals: ["No risk signals captured yet."],
+  growthSignals: ["No growth signals captured yet."],
+  talkingPoints: ["Open with agency priorities for the next 12 months."],
+};
 
 type ReportDetailPageProps = {
   params: Promise<{ id: string }>;
 };
+
+function asStringList(value: Prisma.JsonValue | string[] | null | undefined, fallback: string[]): string[] {
+  if (Array.isArray(value)) {
+    const items: string[] = [];
+    for (const item of value) {
+      if (typeof item === "string") {
+        items.push(item);
+      }
+    }
+    return items;
+  }
+  return fallback;
+}
 
 export default async function ReportDetailPage({ params }: ReportDetailPageProps) {
   const { id } = await params;
@@ -16,20 +42,77 @@ export default async function ReportDetailPage({ params }: ReportDetailPageProps
     notFound();
   }
 
+  const reportToRender = report ?? fallbackReport;
+
+  const companySnapshot = asStringList(report?.companySnapshot, fallbackReport.companySnapshot);
+  const riskSignals = asStringList(report?.riskSignals, fallbackReport.riskSignals);
+  const growthSignals = asStringList(report?.growthSignals, fallbackReport.growthSignals);
+  const talkingPoints = asStringList(report?.talkingPoints, fallbackReport.talkingPoints);
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-semibold tracking-tight">Report Detail</h1>
 
-      <SectionCard title={report?.agencyName ?? "Sample Report"} description="Detailed briefing view coming next.">
+      <SectionCard title={reportToRender.agencyName} description="Briefing lifecycle and account context.">
         <div className="space-y-3 text-sm text-slate-700">
-          <p>
-            Location: {report?.city ?? "Seattle"}, {report?.state ?? "WA"}
-          </p>
-          <p className="flex items-center gap-2">
-            Status: <StatusBadge status={report?.status ?? ReportStatus.PENDING} />
-          </p>
-          <p>This placeholder will evolve into a full intelligence briefing with key findings and citations.</p>
+          <p>Location: {formatLocation(reportToRender)}</p>
+          <div className="flex items-center gap-2">
+            <span>Status:</span> <StatusBadge status={reportToRender.status} />
+          </div>
+          <p>Requested: {reportToRender.createdAt.toLocaleString()}</p>
+          <p>{reportToRender.summary ?? "No summary yet. The report is queued for enrichment."}</p>
         </div>
+      </SectionCard>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <SectionCard title="Company Snapshot">
+          <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
+            {companySnapshot.map((item, index) => (
+              <li key={`${index}-${item}`}>{item}</li>
+            ))}
+          </ul>
+        </SectionCard>
+
+        <SectionCard title="Risk Signals">
+          <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
+            {riskSignals.map((item, index) => (
+              <li key={`${index}-${item}`}>{item}</li>
+            ))}
+          </ul>
+        </SectionCard>
+
+        <SectionCard title="Growth Signals">
+          <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
+            {growthSignals.map((item, index) => (
+              <li key={`${index}-${item}`}>{item}</li>
+            ))}
+          </ul>
+        </SectionCard>
+
+        <SectionCard title="Suggested Talking Points">
+          <ul className="list-disc space-y-2 pl-5 text-sm text-slate-700">
+            {talkingPoints.map((item, index) => (
+              <li key={`${index}-${item}`}>{item}</li>
+            ))}
+          </ul>
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Sources" description="Source list placeholder for future enrichment pipeline.">
+        {report?.sources.length ? (
+          <ul className="space-y-2 text-sm text-slate-700">
+            {report.sources.map((source) => (
+              <li key={source.id} className="rounded-md border border-slate-200 p-3">
+                <p className="font-medium">{source.title}</p>
+                <a href={source.url} target="_blank" rel="noreferrer" className="text-brand hover:underline">
+                  {source.url}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-slate-600">No sources attached yet.</p>
+        )}
       </SectionCard>
     </div>
   );

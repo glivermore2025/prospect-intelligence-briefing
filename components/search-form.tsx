@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,11 @@ type SearchFormState = {
   state: string;
 };
 
+type CreateResearchResponse = {
+  id: string;
+  status: "QUEUED" | "RESEARCHING" | "DRAFTED" | "COMPLETED" | "FAILED";
+};
+
 const initialState: SearchFormState = {
   agencyName: "",
   city: "",
@@ -17,20 +23,35 @@ const initialState: SearchFormState = {
 };
 
 export function SearchForm() {
+  const router = useRouter();
   const [form, setForm] = useState<SearchFormState>(initialState);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
+    setFeedback(null);
 
     try {
-      await fetch("/api/research", {
+      const response = await fetch("/api/research", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+
+      if (!response.ok) {
+        setFeedback("Could not create the report. Please check your inputs and try again.");
+        return;
+      }
+
+      const data = (await response.json()) as CreateResearchResponse;
+      setFeedback("Briefing request created. Redirecting to report detail...");
       setForm(initialState);
+      router.push(`/report/${data.id}`);
+      router.refresh();
+    } catch {
+      setFeedback("Network error while creating report request.");
     } finally {
       setIsSubmitting(false);
     }
@@ -62,10 +83,11 @@ export function SearchForm() {
           maxLength={2}
         />
       </div>
-      <div className="md:col-span-4">
+      <div className="md:col-span-4 space-y-2">
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Saving..." : "Generate Briefing"}
         </Button>
+        {feedback ? <p className="text-sm text-slate-600">{feedback}</p> : null}
       </div>
     </form>
   );
