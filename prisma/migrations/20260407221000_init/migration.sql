@@ -4,12 +4,8 @@ CREATE TABLE "Report" (
     "agencyName" TEXT NOT NULL,
     "city" TEXT NOT NULL,
     "state" TEXT NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'QUEUED',
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
     "summary" TEXT,
-    "companySnapshot" TEXT,
-    "riskSignals" TEXT,
-    "growthSignals" TEXT,
-    "talkingPoints" TEXT,
     "generatedAt" DATETIME,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
@@ -37,6 +33,5 @@ CREATE TABLE "UsageEvent" (
 );
 
 CREATE INDEX "Report_createdAt_idx" ON "Report"("createdAt");
-CREATE INDEX "Report_status_idx" ON "Report"("status");
 CREATE INDEX "ReportSource_reportId_idx" ON "ReportSource"("reportId");
 CREATE INDEX "UsageEvent_reportId_idx" ON "UsageEvent"("reportId");

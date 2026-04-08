@@ -6,14 +6,12 @@ type StatusBadgeProps = {
 };
 
 const statusLabel: Record<ReportStatus, string> = {
-  QUEUED: "Queued",
-  RESEARCHING: "Researching",
-  DRAFTED: "Drafted",
+  PENDING: "Pending",
   COMPLETED: "Completed",
   FAILED: "Failed",
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {
-  const variant = status.toLowerCase() as "queued" | "researching" | "drafted" | "completed" | "failed";
+  const variant = status.toLowerCase() as "pending" | "completed" | "failed";
   return <Badge variant={variant}>{statusLabel[status]}</Badge>;
 }
