@@ -24,7 +24,7 @@ A lightweight MVP foundation for generating prospect intelligence briefings for 
 - Homepage with briefing request form and recent report history
 - Report lifecycle statuses: `QUEUED`, `RESEARCHING`, `DRAFTED`, `COMPLETED`, `FAILED`
 - Report detail sections for Company Snapshot, Risk Signals, Growth Signals, and Suggested Talking Points
-- `POST /api/research` to queue a report request
+- `POST /api/research` to queue and generate an AI-assisted briefing
 - `PATCH /api/research` to move a report through lifecycle statuses
 - `GET /api/research` to fetch recent reports
 - Admin dashboard with:
@@ -52,8 +52,6 @@ A lightweight MVP foundation for generating prospect intelligence briefings for 
    ```bash
    npx prisma migrate dev
    ```
-
-   > Note: `DATABASE_URL="file:./dev.db"` is resolved relative to `prisma/schema.prisma`, so the SQLite file is created at `prisma/dev.db`.
 
 4. Seed local data:
 
@@ -86,7 +84,7 @@ docker run --rm -p 3000:3000 --env-file .env prospect-intelligence-briefing
 ## Notes
 
 - SQLite is the default local database.
-- External web research and AI generation are intentionally not implemented yet.
+- If `OPENAI_API_KEY` is set, generation uses OpenAI Responses API; otherwise a deterministic local fallback generator is used.
 
 ## Troubleshooting
 

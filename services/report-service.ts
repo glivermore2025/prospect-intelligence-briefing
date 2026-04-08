@@ -1,5 +1,6 @@
 import { ReportStatus, type Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { generateBriefing } from "@/services/ai-briefing-service";
 import type { ResearchRequest } from "@/lib/validators";
 
 export type ReportFilters = {
@@ -37,12 +38,65 @@ export async function createResearchRequest(input: ResearchRequest) {
       city: input.city,
       state: input.state,
       status: ReportStatus.QUEUED,
-      companySnapshot: {
-        description: "Prospect profile is being assembled.",
-      },
-      talkingPoints: ["Ask about primary commercial lines focus.", "Confirm renewal timeline and incumbent carrier mix."],
     },
   });
+}
+
+export async function processReportGeneration(reportId: string) {
+  const report = await prisma.report.findUnique({ where: { id: reportId } });
+  if (!report) return null;
+
+  await prisma.report.update({
+    where: { id: reportId },
+    data: { status: ReportStatus.RESEARCHING },
+  });
+
+  try {
+    const briefing = await generateBriefing(report.agencyName, report.city, report.state);
+
+    await prisma.report.update({
+      where: { id: reportId },
+      data: {
+        status: ReportStatus.COMPLETED,
+        summary: briefing.summary,
+        companySnapshot: briefing.companySnapshot,
+        riskSignals: briefing.riskSignals,
+        growthSignals: briefing.growthSignals,
+        talkingPoints: briefing.talkingPoints,
+        generatedAt: new Date(),
+      },
+    });
+
+    if (briefing.sources.length) {
+      await prisma.reportSource.createMany({
+        data: briefing.sources.map((source) => ({
+          reportId,
+          title: source.title,
+          url: source.url,
+          sourceType: source.sourceType,
+        })),
+      });
+    }
+
+    await prisma.usageEvent.create({
+      data: {
+        reportId,
+        eventType: "REPORT_GENERATED",
+        metadata: { mode: process.env.OPENAI_API_KEY ? "openai" : "fallback" },
+      },
+    });
+
+    return prisma.report.findUnique({ where: { id: reportId } });
+  } catch {
+    await prisma.report.update({
+      where: { id: reportId },
+      data: {
+        status: ReportStatus.FAILED,
+        summary: "Generation failed. Please retry.",
+      },
+    });
+    return prisma.report.findUnique({ where: { id: reportId } });
+  }
 }
 
 export async function listRecentReports(limit = 8) {

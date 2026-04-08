@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createResearchRequest, listRecentReports, updateReportStatus } from "@/services/report-service";
+import { createResearchRequest, listRecentReports, processReportGeneration, updateReportStatus } from "@/services/report-service";
 import { reportStatusUpdateSchema, researchRequestSchema } from "@/lib/validators";
 
 export async function GET() {
@@ -17,8 +17,9 @@ export async function POST(request: Request) {
     }
 
     const report = await createResearchRequest(validation.data);
+    const processed = await processReportGeneration(report.id);
 
-    return NextResponse.json({ id: report.id, status: report.status }, { status: 201 });
+    return NextResponse.json({ id: report.id, status: processed?.status ?? report.status }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Unable to create report request" }, { status: 500 });
   }
