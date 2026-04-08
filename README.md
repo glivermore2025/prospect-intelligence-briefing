@@ -86,6 +86,21 @@ docker run --rm -p 3000:3000 --env-file .env prospect-intelligence-briefing
 - SQLite is the default local database.
 - If `OPENAI_API_KEY` is set, generation uses OpenAI Responses API; otherwise a deterministic local fallback generator is used.
 
+## Codespaces Secret Wiring (OpenAI)
+
+To use real OpenAI generation in GitHub Codespaces without committing keys:
+
+1. In GitHub, go to **Repository Settings -> Secrets and variables -> Codespaces**.
+2. Add secret:
+   - `OPENAI_API_KEY` = your API key
+   - (optional) `OPENAI_MODEL` = `gpt-4.1-mini`
+3. Rebuild or create a new Codespace.
+
+This repo includes `.devcontainer/devcontainer.json` and `.devcontainer/post-create.sh` to:
+- copy `.env.example` to `.env` if needed,
+- inject Codespaces secret values into `.env`,
+- run install/migrate/seed bootstrap commands.
+
 ## Troubleshooting
 
 ### Prisma enum mismatch (`Value 'QUEUED' not found in enum 'ReportStatus'`)
