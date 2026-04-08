@@ -53,6 +53,8 @@ A lightweight MVP foundation for generating prospect intelligence briefings for 
    npx prisma migrate dev
    ```
 
+   > Note: `DATABASE_URL="file:./dev.db"` is resolved relative to `prisma/schema.prisma`, so the SQLite file is created at `prisma/dev.db`.
+
 4. Seed local data:
 
    ```bash
