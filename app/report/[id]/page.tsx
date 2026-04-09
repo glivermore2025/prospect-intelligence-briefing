@@ -12,6 +12,8 @@ const fallbackReport = {
   state: "WA",
   status: ReportStatus.QUEUED,
   createdAt: new Date(),
+  updatedAt: new Date(),
+  generatedAt: null,
   summary: "Prospect briefing is queued for enrichment.",
   companySnapshot: ["Core profile currently being collected."],
   riskSignals: ["No risk signals captured yet."],
@@ -76,6 +78,7 @@ export default async function ReportDetailPage({ params }: ReportDetailPageProps
             <span>Status:</span> <StatusBadge status={reportToRender.status} />
           </div>
           <p>Requested: {reportToRender.createdAt.toLocaleString()}</p>
+          <p>Last updated: {reportToRender.updatedAt.toLocaleString()}</p>
           <p>Generated: {reportToRender.generatedAt ? reportToRender.generatedAt.toLocaleString() : "Not generated yet"}</p>
           <p>Generation Mode: {generationMode}</p>
           <p>Model: {generationModelLabel}</p>

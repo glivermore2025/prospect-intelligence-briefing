@@ -85,7 +85,7 @@ export function SearchForm() {
       </div>
       <div className="md:col-span-4 space-y-2">
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Generating..." : "Generate Briefing"}
+          {isSubmitting ? "Generating briefing…" : "Generate Briefing"}
         </Button>
         {feedback ? <p className="text-sm text-slate-600">{feedback}</p> : null}
       </div>
