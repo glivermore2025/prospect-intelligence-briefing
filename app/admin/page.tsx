@@ -3,6 +3,8 @@ import { ReportStatus } from "@prisma/client";
 import { AdminChart } from "@/components/admin-chart";
 import { ReportHistoryRow } from "@/components/report-history-row";
 import { SectionCard } from "@/components/section-card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { getAdminSummary, getWeeklyVolumeData, listAdminReports, type ReportFilters } from "@/services/report-service";
 
 type AdminPageProps = {
@@ -67,10 +69,10 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
       <SectionCard title="Filters">
         <form className="grid gap-3 md:grid-cols-5" method="GET">
-          <input name="city" defaultValue={filters.city} placeholder="City" className="h-10 rounded-md border border-slate-300 px-3 text-sm" />
-          <input name="state" defaultValue={filters.state} placeholder="State" className="h-10 rounded-md border border-slate-300 px-3 text-sm" />
-          <input name="dateFrom" defaultValue={filters.dateFrom} type="date" className="h-10 rounded-md border border-slate-300 px-3 text-sm" />
-          <input name="dateTo" defaultValue={filters.dateTo} type="date" className="h-10 rounded-md border border-slate-300 px-3 text-sm" />
+          <Input name="city" defaultValue={filters.city} placeholder="City" />
+          <Input name="state" defaultValue={filters.state} placeholder="State" />
+          <Input name="dateFrom" defaultValue={filters.dateFrom} type="date" />
+          <Input name="dateTo" defaultValue={filters.dateTo} type="date" />
           <select name="status" defaultValue={filters.status} className="h-10 rounded-md border border-slate-300 px-3 text-sm">
             <option value="">All statuses</option>
             {Object.values(ReportStatus).map((status) => (
@@ -80,12 +82,12 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             ))}
           </select>
           <div className="md:col-span-5 flex gap-3">
-            <button type="submit" className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white">
+            <Button type="submit">
               Apply Filters
-            </button>
-            <Link href="/admin" className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700">
-              Clear
-            </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/admin">Clear</Link>
+            </Button>
           </div>
         </form>
       </SectionCard>

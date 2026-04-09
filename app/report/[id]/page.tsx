@@ -37,7 +37,14 @@ function asStringList(value: Prisma.JsonValue | string[] | null | undefined, fal
 }
 
 function generationModeLabel(value: unknown) {
-  return typeof value === "string" ? value : "fallback";
+  if (typeof value !== "string") return "Fallback (local template)";
+  if (value === "openai") return "OpenAI";
+  if (value === "fallback") return "Fallback (local template)";
+  return value;
+}
+
+function generationModel(value: unknown) {
+  return typeof value === "string" ? value : "Not recorded";
 }
 
 export default async function ReportDetailPage({ params }: ReportDetailPageProps) {
@@ -54,7 +61,9 @@ export default async function ReportDetailPage({ params }: ReportDetailPageProps
   const riskSignals = asStringList(report?.riskSignals, fallbackReport.riskSignals);
   const growthSignals = asStringList(report?.growthSignals, fallbackReport.growthSignals);
   const talkingPoints = asStringList(report?.talkingPoints, fallbackReport.talkingPoints);
-  const generationMode = generationModeLabel(report?.usageEvents[0]?.metadata && (report.usageEvents[0].metadata as { mode?: string }).mode);
+  const usageMetadata = report?.usageEvents[0]?.metadata as { mode?: string; model?: string } | null | undefined;
+  const generationMode = generationModeLabel(usageMetadata?.mode);
+  const generationModelLabel = generationModel(usageMetadata?.model);
 
   return (
     <div className="space-y-6">
@@ -67,7 +76,9 @@ export default async function ReportDetailPage({ params }: ReportDetailPageProps
             <span>Status:</span> <StatusBadge status={reportToRender.status} />
           </div>
           <p>Requested: {reportToRender.createdAt.toLocaleString()}</p>
-          <p>Generated via: {generationMode}</p>
+          <p>Generated: {reportToRender.generatedAt ? reportToRender.generatedAt.toLocaleString() : "Not generated yet"}</p>
+          <p>Generation Mode: {generationMode}</p>
+          <p>Model: {generationModelLabel}</p>
           <p>{reportToRender.summary ?? "No summary yet. The report is queued for enrichment."}</p>
           <RegenerateButton reportId={reportToRender.id} />
         </div>

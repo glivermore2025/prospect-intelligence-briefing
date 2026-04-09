@@ -88,6 +88,28 @@ docker run --rm -p 3000:3000 --env-file .env prospect-intelligence-briefing
 - SQLite is the default local database.
 - If `OPENAI_API_KEY` is set, generation uses OpenAI Responses API; otherwise a deterministic local fallback generator is used.
 
+## Demo Walkthrough (2-3 minutes)
+
+1. Open the home page and submit a new briefing request with Agency, City, and State.
+2. Confirm the new report appears in **Recent Reports**, then open report detail.
+3. On report detail, highlight:
+   - lifecycle status
+   - generated timestamp
+   - generation mode (`OpenAI` or local fallback)
+   - model metadata when available
+4. Click **Regenerate Report** and confirm the page refreshes with updated output.
+5. Open **Admin Dashboard** and demonstrate:
+   - KPI card filtering by status
+   - city/state/date/status filters
+   - chart day links that drill into matching reports
+
+## Known Limitations
+
+- `POST /api/research` currently performs generation in-request; a production deployment should move this to an async worker queue.
+- Source enrichment remains basic and currently relies on generated/seeded data.
+- Fallback mode is deterministic and intended for reliability/testing, not for high-quality external research.
+- Authentication and authorization are intentionally out of scope for this MVP foundation.
+
 ## Codespaces Secret Wiring (OpenAI)
 
 To use real OpenAI generation in GitHub Codespaces without committing keys:
@@ -125,4 +147,3 @@ If needed, do a full local reset:
 ```bash
 npm run db:reset
 ```
-
