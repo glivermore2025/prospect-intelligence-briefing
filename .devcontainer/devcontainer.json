@@ -1,0 +1,4 @@
+{
+  "name": "prospect-intelligence-briefing",
+  "postCreateCommand": "bash .devcontainer/post-create.sh"
+}
