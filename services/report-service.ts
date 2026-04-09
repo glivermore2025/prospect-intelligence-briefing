@@ -20,12 +20,8 @@ function buildReportWhere(filters: ReportFilters = {}): Prisma.ReportWhereInput 
 
   if (filters.dateFrom || filters.dateTo) {
     where.createdAt = {};
-    if (filters.dateFrom) {
-      where.createdAt.gte = new Date(`${filters.dateFrom}T00:00:00.000Z`);
-    }
-    if (filters.dateTo) {
-      where.createdAt.lte = new Date(`${filters.dateTo}T23:59:59.999Z`);
-    }
+    if (filters.dateFrom) where.createdAt.gte = new Date(`${filters.dateFrom}T00:00:00.000Z`);
+    if (filters.dateTo) where.createdAt.lte = new Date(`${filters.dateTo}T23:59:59.999Z`);
   }
 
   return where;
@@ -46,44 +42,48 @@ export async function processReportGeneration(reportId: string) {
   const report = await prisma.report.findUnique({ where: { id: reportId } });
   if (!report) return null;
 
-  await prisma.report.update({
-    where: { id: reportId },
-    data: { status: ReportStatus.RESEARCHING },
-  });
+  await prisma.report.update({ where: { id: reportId }, data: { status: ReportStatus.RESEARCHING } });
 
   try {
     const briefing = await generateBriefing(report.agencyName, report.city, report.state);
 
-    await prisma.report.update({
-      where: { id: reportId },
-      data: {
-        status: ReportStatus.COMPLETED,
-        summary: briefing.summary,
-        companySnapshot: briefing.companySnapshot,
-        riskSignals: briefing.riskSignals,
-        growthSignals: briefing.growthSignals,
-        talkingPoints: briefing.talkingPoints,
-        generatedAt: new Date(),
-      },
-    });
-
-    if (briefing.sources.length) {
-      await prisma.reportSource.createMany({
-        data: briefing.sources.map((source) => ({
-          reportId,
-          title: source.title,
-          url: source.url,
-          sourceType: source.sourceType,
-        })),
+    await prisma.$transaction(async (tx) => {
+      await tx.report.update({
+        where: { id: reportId },
+        data: {
+          status: ReportStatus.COMPLETED,
+          summary: briefing.summary,
+          companySnapshot: briefing.companySnapshot,
+          riskSignals: briefing.riskSignals,
+          growthSignals: briefing.growthSignals,
+          talkingPoints: briefing.talkingPoints,
+          generatedAt: new Date(),
+        },
       });
-    }
 
-    await prisma.usageEvent.create({
-      data: {
-        reportId,
-        eventType: "REPORT_GENERATED",
-        metadata: { mode: process.env.OPENAI_API_KEY ? "openai" : "fallback" },
-      },
+      await tx.reportSource.deleteMany({ where: { reportId } });
+
+      if (briefing.sources.length) {
+        await tx.reportSource.createMany({
+          data: briefing.sources.map((source) => ({
+            reportId,
+            title: source.title,
+            url: source.url,
+            sourceType: source.sourceType,
+          })),
+        });
+      }
+
+      await tx.usageEvent.create({
+        data: {
+          reportId,
+          eventType: "REPORT_GENERATED",
+          metadata: {
+            mode: process.env.OPENAI_API_KEY ? "openai" : "fallback",
+            model: process.env.OPENAI_MODEL ?? "gpt-4.1-mini",
+          },
+        },
+      });
     });
 
     return prisma.report.findUnique({ where: { id: reportId } });
@@ -100,24 +100,24 @@ export async function processReportGeneration(reportId: string) {
 }
 
 export async function listRecentReports(limit = 8) {
-  return prisma.report.findMany({
-    orderBy: { createdAt: "desc" },
-    take: limit,
-  });
+  return prisma.report.findMany({ orderBy: { createdAt: "desc" }, take: limit });
 }
 
 export async function listAdminReports(filters: ReportFilters, limit = 25) {
-  return prisma.report.findMany({
-    where: buildReportWhere(filters),
-    orderBy: { createdAt: "desc" },
-    take: limit,
-  });
+  return prisma.report.findMany({ where: buildReportWhere(filters), orderBy: { createdAt: "desc" }, take: limit });
 }
 
 export async function getReportById(id: string) {
   return prisma.report.findUnique({
     where: { id },
-    include: { sources: true },
+    include: {
+      sources: true,
+      usageEvents: {
+        where: { eventType: "REPORT_GENERATED" },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
+    },
   });
 }
 
@@ -160,8 +160,7 @@ export async function getWeeklyVolumeData(days = 14, filters: ReportFilters = {}
   for (let i = 0; i < days; i += 1) {
     const day = new Date(start);
     day.setUTCDate(start.getUTCDate() + i);
-    const key = day.toISOString().slice(0, 10);
-    counts.set(key, 0);
+    counts.set(day.toISOString().slice(0, 10), 0);
   }
 
   for (const report of reports) {

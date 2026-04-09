@@ -36,11 +36,16 @@ function fallbackBriefing(agencyName: string, city: string, state: string): Brie
   };
 }
 
+function logAiError(message: string, details?: unknown) {
+  console.error(`[AI_BRIEFING_ERROR] ${message}`, details ?? "");
+}
+
 export async function generateBriefing(agencyName: string, city: string, state: string): Promise<BriefingOutput> {
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.OPENAI_MODEL ?? "gpt-4.1-mini";
 
   if (!apiKey) {
+    logAiError("OPENAI_API_KEY missing. Using fallback generator.");
     return fallbackBriefing(agencyName, city, state);
   }
 
@@ -90,20 +95,21 @@ export async function generateBriefing(agencyName: string, city: string, state: 
   });
 
   if (!response.ok) {
+    logAiError(`OpenAI request failed with status ${response.status}. Using fallback generator.`);
     return fallbackBriefing(agencyName, city, state);
   }
 
-  const data = (await response.json()) as {
-    output_text?: string;
-  };
+  const data = (await response.json()) as { output_text?: string };
 
   if (!data.output_text) {
+    logAiError("OpenAI response missing output_text. Using fallback generator.", data);
     return fallbackBriefing(agencyName, city, state);
   }
 
   try {
     return JSON.parse(data.output_text) as BriefingOutput;
-  } catch {
+  } catch (error) {
+    logAiError("Failed to parse OpenAI output_text as JSON. Using fallback generator.", error);
     return fallbackBriefing(agencyName, city, state);
   }
 }

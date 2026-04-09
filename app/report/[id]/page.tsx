@@ -1,10 +1,12 @@
 import { ReportStatus, type Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
+import { RegenerateButton } from "@/components/regenerate-button";
 import { SectionCard } from "@/components/section-card";
 import { StatusBadge } from "@/components/status-badge";
 import { formatLocation, getReportById } from "@/services/report-service";
 
 const fallbackReport = {
+  id: "sample-report",
   agencyName: "Sample Report",
   city: "Seattle",
   state: "WA",
@@ -34,6 +36,10 @@ function asStringList(value: Prisma.JsonValue | string[] | null | undefined, fal
   return fallback;
 }
 
+function generationModeLabel(value: unknown) {
+  return typeof value === "string" ? value : "fallback";
+}
+
 export default async function ReportDetailPage({ params }: ReportDetailPageProps) {
   const { id } = await params;
   const report = await getReportById(id);
@@ -48,6 +54,7 @@ export default async function ReportDetailPage({ params }: ReportDetailPageProps
   const riskSignals = asStringList(report?.riskSignals, fallbackReport.riskSignals);
   const growthSignals = asStringList(report?.growthSignals, fallbackReport.growthSignals);
   const talkingPoints = asStringList(report?.talkingPoints, fallbackReport.talkingPoints);
+  const generationMode = generationModeLabel(report?.usageEvents[0]?.metadata && (report.usageEvents[0].metadata as { mode?: string }).mode);
 
   return (
     <div className="space-y-6">
@@ -60,7 +67,9 @@ export default async function ReportDetailPage({ params }: ReportDetailPageProps
             <span>Status:</span> <StatusBadge status={reportToRender.status} />
           </div>
           <p>Requested: {reportToRender.createdAt.toLocaleString()}</p>
+          <p>Generated via: {generationMode}</p>
           <p>{reportToRender.summary ?? "No summary yet. The report is queued for enrichment."}</p>
+          <RegenerateButton reportId={reportToRender.id} />
         </div>
       </SectionCard>
 

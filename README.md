@@ -24,7 +24,9 @@ A lightweight MVP foundation for generating prospect intelligence briefings for 
 - Homepage with briefing request form and recent report history
 - Report lifecycle statuses: `QUEUED`, `RESEARCHING`, `DRAFTED`, `COMPLETED`, `FAILED`
 - Report detail sections for Company Snapshot, Risk Signals, Growth Signals, and Suggested Talking Points
+- Report detail includes generation mode indicator and a one-click regenerate action
 - `POST /api/research` to queue and generate an AI-assisted briefing
+- AI guardrail logging with fallback reasons when live generation fails
 - `PATCH /api/research` to move a report through lifecycle statuses
 - `GET /api/research` to fetch recent reports
 - Admin dashboard with:
